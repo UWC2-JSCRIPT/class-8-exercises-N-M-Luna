@@ -1,23 +1,55 @@
-// create api-key.js file with const API_KEY="your_api_key" in this same directory to use
-const BASE_URL = 'https://api.nytimes.com/svc/search/v2/articlesearch.json';
+//  Take the user submission for year, month, and day.
+let year, month, date
+const searchForm = document.querySelector('form')
+const dateRequest = document.querySelector('#date-requested')
 
-const url = `${BASE_URL}?q=tech&api-key=${API_KEY}`;
+searchForm.addEventListener('submit', (e) => {
+  e.preventDefault()
+  year = dateRequest.value.slice(0,4)
+  month = dateRequest.value.slice(5,7)
+  day = dateRequest.value.slice(8)
+  /* */
+  console.log(year)
+  console.log(month)
+  console.log(day)
 
-fetch(url)
-  .then(function(data) {
-    return data.json();
+  // Calls the New York Times API to find the best selling hardcover fiction books for that date
+  const BASE_URL = 'https://api.nytimes.com/svc/books/v3/lists/'
+  const API_KEY = 'F3ZxMDRAxZbFGmLbA6AYOI8KYYpGMnxX'
+  const url = `${BASE_URL}${year}-${month}-${day}/hardcover-fiction.json?api-key=${API_KEY}`
+
+  // Document elements
+  const titleDisplay = document.querySelectorAll('.book-title')
+  const authorDisplay = document.querySelectorAll('.book-author')
+  const descriptionDisplay = document.querySelectorAll('.book-description')
+  console.log(titleDisplay)
+
+  // Grab {title, author, and description} of the first five books and display it on the browser
+  fetch(url)
+    .then(function(data) {
+      return data.json();
+    })
+    .then(function(responseJson) {
+      console.log(responseJson);
+      let title, author, description
+
+      //For the first five books
+      for (let i = 0; i < 5; i++) {
+
+        //Gather the title,
+        title = responseJson.results.books[i].title;
+        titleDisplay[i].innerHTML = title
+        console.log(`Title: ${title}`);
+
+        //author, and 
+        author = responseJson.results.books[i].author;
+        authorDisplay[i].innerHTML = author
+        console.log(`Author: ${author}`);
+
+        //description
+        description = responseJson.results.books[i].description;
+        descriptionDisplay[i].innerHTML = description
+        console.log(`Description: ${description}`);
+      }
+    }); 
   })
-  .then(function(responseJson) {
-    console.log(responseJson);
-
-    let article = responseJson.response.docs[0];
-    console.log(article);
-
-    const mainHeadline = article.headline.main;
-    document.getElementById('article-title').innerText = mainHeadline;
-
-    if (article.multimedia.length > 0) {
-      const imgUrl = `https://www.nytimes.com/${article.multimedia[0].url}`;
-      document.getElementById('article-img').src = imgUrl;
-    }
-  });
